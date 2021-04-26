@@ -17,16 +17,20 @@ double data_in[TrainData][In];
 double data_out[TrainData][Out];
 double test_data_in[TrainData][In];
 double test_data_out[TrainData][Out];
-double pre[TestData][Out];              //Actual output of TestData
-double v[Imp][In];                      //Learning rate between In to Imp
-double w[Out][Imp];                     //Learning rate between Imp to Out
-double y[Imp];                          //output of Imp
-double max_in[In], min_in[In];          //maxi&mini mum of In
-double max_out[In], min_out[In];        //maxi&mini mum of Out
-double out_put_data[Out];               //Output of network
-double w_cor[Out][Imp], v_cor[Imp][In]; //correction of w and v
-double mse;                             //Mean Square Error
-double rmse;                            //Root mean square error
+double pre[TestData][Out];              // Actual output of TestData
+double u[Imp][In];                      // Learning rate between In to Imp
+double v[Imp2][Imp];                    // Learning rate between Imp to Imp2
+double w[Out][Imp];                     // Learning rate between Imp2 to Out
+double y[Imp];                          // output of Imp
+double z[Imp2];                         // output of Imp2
+double max_in[In], min_in[In];          // maxi&mini mum of In
+double max_out[In], min_out[In];        // maxi&mini mum of Out
+double out_put_data[Out];               // Output of network
+double u_cor[Imp][In];
+double v_cor[Imp2][Imp];
+double w_cor[Out][Imp2];                // correction of w and u and v
+double mse;                             // Mean Square Error
+double rmse;                            // Root mean square error
 double tmp1;
 double tmp2;
 
@@ -93,13 +97,20 @@ void init_BP_network() {
 
     for (int i = 0; i < Imp; ++i) {
         for (int j = 0; j < In; ++j) {
-            v[i][j] = rand() * 2.0 / RAND_MAX - 1; // within [-1,1]
-            v_cor[i][j] = 0;
+            u[i][j] = rand() * 2.0 / RAND_MAX - 1; // within [-1,1]
+            u_cor[i][j] = 0;
+        }
+    } // Randomize u
+
+    for (int i = 0; i < Imp2; ++i) {
+        for (int j = 0; j < Imp; ++j) {
+            v[i][j] = rand() * 2.0 / RAND_MAX - 1;
+            v_cor[j][i] = 0;
         }
     } // Randomize v
 
     for (int i = 0; i < Out; ++i) {
-        for (int j = 0; j < Imp; ++j) {
+        for (int j = 0; j < Imp2; ++j) {
             w[i][j] = rand() * 2.0 / RAND_MAX - 1;
             w_cor[j][i] = 0;
         }
@@ -128,7 +139,7 @@ void train_network() {
             printf("%d  %lf\n", count, mse);
         }
         count++;
-    } while (count <= TrainingTimes && mse >= 1);
+    } while (mse >= 1);
     printf("Done training!\n");
 }
 
@@ -137,33 +148,77 @@ void compute_forward(int var) {
     for (int i = 0; i < Imp; ++i) {
         sum = 0;
         for (int j = 0; j < In; ++j) {
-            sum += v[i][j] * data_in[var][j];
+            sum += u[i][j] * data_in[var][j];
         }
         y[i] = 1 / (1 + exp(-1 * sum));
+    }
+    for (int i = 0; i < Imp2; ++i) {
+        sum = 0;
+        for (int j = 0; j < Imp; ++j) {
+            sum += v[i][j] * y[j];
+        }
+        z[i] = 1 / (1 + exp(-1 * sum));
     }
     for (int i = 0; i < Out; ++i) {
         sum = 0;
         for (int j = 0; j < Imp; ++j) {
-            sum += w[i][j] * y[j];
+            sum += w[i][j] * z[j];
         }
         out_put_data[i] = 1 / (1 + exp(-1 * sum));
     }
 }
 
 void feed_back(int var) {
-    double t;
-    for (int i = 0; i < Imp; ++i) {
-        t = 0;
+//    double t;
+//    for (int i = 0; i < Imp2; ++i) {
+//        t = 0;
+//        for (int j = 0; j < Out; ++j) {
+//            w_cor[j][i] = WAlta * (data_out[var][j] - out_put_data[j]) * out_put_data[j] * (1 - out_put_data[j]) * z[i];
+//            w[j][i] += w_cor[j][i];
+//            t += (data_out[var][j] - out_put_data[j]) * out_put_data[j] * (1 - out_put_data[j]) * w[j][i];
+//        }
+//    }
+//    for (int j = 0; j < Out; ++j) {
+//        w_cor[j][i] = VAlta * t * y[i] * (1 - y[i]) * data_in[var][j];
+//        u[i][j] += v_cor[i][j];
+//    }
+    double delta_Out[Out];
+    double delta_Imp2[Imp2];
+    double delta_Imp[Imp];
+
+    for (int i = 0; i < Out; ++i) {
+        delta_Out[i] = data_out[var][i] - out_put_data[i];
+    }
+    for (int i = 0; i < Imp2; ++i) {
         for (int j = 0; j < Out; ++j) {
-            w_cor[j][i] = WAlta * (data_out[var][j] - out_put_data[j]) * out_put_data[j] * (1 - out_put_data[j]) * y[i];
-            w[j][i] += w_cor[j][i];
-            t += (data_out[var][j] - out_put_data[j]) * out_put_data[j] * (1 - out_put_data[j]) * w[j][i];
+            delta_Imp2[i] += w[j][i] * delta_Out[j];
         }
+    }
+    for (int i = 0; i < Imp; ++i) {
+        for (int j = 0; j < Imp2; ++j) {
+            delta_Imp[i] += v[j][i] * delta_Imp2[j];
+        }
+    }
+    /* compute delta of neurons */
+    for (int i = 0; i < Imp; ++i) {
         for (int j = 0; j < In; ++j) {
-            v_cor[i][j] = VAlta * t * y[i] * (1 - y[i]) * data_in[var][j];
+            u_cor[i][j] = UAlta * delta_Imp[i] * data_in[var][j] * y[i] * (1 - y[i]);
+            u[i][j] += u_cor[i][j];
+        }
+    }
+    for (int i = 0; i < Imp2; ++i) {
+        for (int j = 0; j < Imp; ++j) {
+            v_cor[i][j] = VAlta * delta_Imp2[i] * y[j] * z[i] * (1 - z[i]);
             v[i][j] += v_cor[i][j];
         }
     }
+    for (int i = 0; i < Out; ++i) {
+        for (int j = 0; j < Imp2; ++j) {
+            w_cor[i][j] = WAlta * delta_Out[i] * z[j] * out_put_data[i] * (1 - out_put_data[i]);
+            w[i][j] += w_cor[i][j];
+        }
+    }
+
 }
 
 void test_network(char test_file_name[]) {
@@ -196,7 +251,7 @@ void test_network(char test_file_name[]) {
         for (int i = 0; i < Imp; ++i) {
             sum = 0;
             for (int j = 0; j < In; ++j) {
-                sum += v[i][j] * test_data_in[k][j];
+                sum += u[i][j] * test_data_in[k][j];
             }
             y[i] = 1 / (1 + exp(-1 * sum));
         }

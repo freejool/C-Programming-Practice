@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="48d5debe-627c-410c-b308-ee8529f976b1" name="backup" url="http://localhost">
+        <fileTransfer mountedRoot="\\wsl$\Ubuntu-18.04\home\sxing\backup" accessType="MOUNT" port="0" />
+      </webServer>
+    </option>
+  </component>
+</project>

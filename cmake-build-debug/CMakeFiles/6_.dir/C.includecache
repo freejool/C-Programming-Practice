@@ -1,0 +1,26 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+C:/Users/Sxing/OneDrive/2020_2/C/6#/_def_.h
+stdio.h
+-
+math.h
+-
+time.h
+-
+stdlib.h
+-
+
+C:/Users/Sxing/OneDrive/2020_2/C/6#/head.h
+_def_.h
+C:/Users/Sxing/OneDrive/2020_2/C/6#/_def_.h
+
+C:/Users/Sxing/OneDrive/2020_2/C/6#/main.c
+head.h
+C:/Users/Sxing/OneDrive/2020_2/C/6#/head.h
+

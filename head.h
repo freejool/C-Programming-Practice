@@ -1,0 +1,221 @@
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "cert-msc50-cpp"
+#pragma ide diagnostic ignored "cert-msc51-cpp"
+#pragma ide diagnostic ignored "cert-err34-c"
+//
+// Created by sxing on 2021/4/21.
+//
+
+#ifndef INC_6__HEAD_H
+#define INC_6__HEAD_H
+
+#include "_def_.h"
+
+//W -- Learning rate of Imp to Out
+//V -- Learning rate between In to Imp
+double data_in[TrainData][In];
+double data_out[TrainData][Out];
+double test_data_in[TrainData][In];
+double test_data_out[TrainData][Out];
+double pre[TestData][Out];              //Actual output of TestData
+double v[Imp][In];                      //Learning rate between In to Imp
+double w[Out][Imp];                     //Learning rate between Imp to Out
+double y[Imp];                          //output of Imp
+double max_in[In], min_in[In];          //maxi&mini mum of In
+double max_out[In], min_out[In];        //maxi&mini mum of Out
+double out_put_data[Out];               //Output of network
+double w_cor[Out][Imp], v_cor[Imp][In]; //correction of w and v
+double mse;                             //Mean Square Error
+double rmse;                            //Root mean square error
+double tmp1;
+double tmp2;
+
+
+void read_data(char in[], char out[]) {
+    FILE *fp1, *fp2;
+    char ch;
+    if ((fp1 = fopen(in, "rb")) == NULL) {
+        printf("Failed to read %s\n", in);
+        exit(0);
+    }
+
+    for (int i = 0; i < TrainData; ++i) {
+        for (int j = 0; j < In; ++j) {
+            if (j != 0) {
+                fscanf(fp1, "%c", &ch);
+            }
+            fscanf(fp1, "%lf", &data_in[i][j]);
+        }
+    }
+    fclose(fp1);
+    if ((fp2 = fopen(out, "rb")) == NULL) {
+        printf("Failed to read %s\n", out);
+        exit(0);
+    }
+    for (int i = 0; i < TrainData; ++i) {
+        for (int j = 0; j < Out; ++j) {
+            fscanf(fp2, "%lf", &data_out[i][j]);
+        }
+    }
+    fclose(fp2);
+}
+
+void init_BP_network() {
+    srand((int) time(0));
+
+    for (int i = 0; i < In; ++i) {
+        min_in[i] = max_in[i] = data_in[0][i];
+        for (int j = 0; j < TrainData; ++j) {
+            max_in[i] = max_in[i] > data_in[j][i] ? max_in[i] : data_in[j][i];
+            min_in[i] = min_in[i] < data_in[j][i] ? min_in[i] : data_in[j][i];
+        }
+    }
+
+    for (int i = 0; i < Out; ++i) {
+        min_out[i] = max_out[i] = data_out[0][i];
+        for (int j = 0; j < TrainData; ++j) {
+            max_out[i] = max_out[i] > data_out[j][i] ? max_out[i] : data_out[j][i];
+            min_out[i] = min_out[i] < data_out[j][i] ? min_out[i] : data_out[j][i];
+        }
+    } // detect maximum and minimum of input and output data
+
+    for (int i = 0; i < In; ++i) {
+        for (int j = 0; j < TrainData; ++j) {
+            data_in[j][i] = (data_in[j][i] - min_in[i]) / (max_in[i] - min_in[i]);
+        }
+    } // Normalization for data_in
+
+    for (int i = 0; i < Out; ++i) {
+        for (int j = 0; j < TrainData; ++j) {
+            data_out[j][i] = (data_out[j][i] - min_out[i]) / (max_out[i] - min_out[i]);
+        }
+    } // Normalization for data_out
+
+    for (int i = 0; i < Imp; ++i) {
+        for (int j = 0; j < In; ++j) {
+            v[i][j] = rand() * 2.0 / RAND_MAX - 1; // within [-1,1]
+            v_cor[i][j] = 0;
+        }
+    } // Randomize v
+
+    for (int i = 0; i < Out; ++i) {
+        for (int j = 0; j < Imp; ++j) {
+            w[i][j] = rand() * 2.0 / RAND_MAX - 1;
+            w_cor[j][i] = 0;
+        }
+    } // Randomize w
+}
+
+void compute_forward(int var);  // Forward propagation function
+void feed_back(int var);          // Backward correction function
+
+void train_network() {
+    int count = 1; // num of training times
+    do {
+        mse = 0;
+        for (int i = 0; i < TrainData; ++i) {
+            compute_forward(i);     // Go forward
+            feed_back(i);           // Go backward
+            for (int j = 0; j < Out; ++j) {
+                tmp1 = out_put_data[j] * (max_out[j] - min_out[j]) + min_out[j];
+                tmp2 = data_out[i][j] * (max_out[j] - min_out[j]) + min_out[j];
+                mse += (tmp1 - tmp2) * (tmp1 - tmp2);
+            }
+        }
+        mse = mse / (TrainData * Out);
+
+        if (count % 1000 == 0) {
+            printf("%d  %lf\n", count, mse);
+        }
+        count++;
+    } while (count <= TrainingTimes && mse >= 1);
+    printf("Done training!\n");
+}
+
+void compute_forward(int var) {
+    double sum;
+    for (int i = 0; i < Imp; ++i) {
+        sum = 0;
+        for (int j = 0; j < In; ++j) {
+            sum += v[i][j] * data_in[var][j];
+        }
+        y[i] = 1 / (1 + exp(-1 * sum));
+    }
+    for (int i = 0; i < Out; ++i) {
+        sum = 0;
+        for (int j = 0; j < Imp; ++j) {
+            sum += w[i][j] * y[j];
+        }
+        out_put_data[i] = 1 / (1 + exp(-1 * sum));
+    }
+}
+
+void feed_back(int var) {
+    double t;
+    for (int i = 0; i < Imp; ++i) {
+        t = 0;
+        for (int j = 0; j < Out; ++j) {
+            w_cor[j][i] = WAlta * (data_out[var][j] - out_put_data[j]) * out_put_data[j] * (1 - out_put_data[j]) * y[i];
+            w[j][i] += w_cor[j][i];
+            t += (data_out[var][j] - out_put_data[j]) * out_put_data[j] * (1 - out_put_data[j]) * w[j][i];
+        }
+        for (int j = 0; j < In; ++j) {
+            v_cor[i][j] = VAlta * t * y[i] * (1 - y[i]) * data_in[var][j];
+            v[i][j] += v_cor[i][j];
+        }
+    }
+}
+
+void test_network(char test_file_name[]) {
+    FILE *fp;
+    char ch;
+    if ((fp = fopen(test_file_name, "rb")) == NULL) {
+        printf("Failed to read %s\n", test_file_name);
+        exit(0);
+    }
+    for (int i = 0; i < TestData; ++i) {
+        for (int j = 0; j < In + Out; ++j) {
+            if (j != 0) {
+                fscanf(fp, "%c", &ch);
+            }
+            if (j < In) {
+                fscanf(fp, "%lf", &test_data_in[i][j]);
+            } else {
+                fscanf(fp, "%lf", &test_data_out[i][j - In]);
+            }
+        }
+    }
+    fclose(fp);
+    double sum;
+    for (int i = 0; i < In; ++i) {
+        for (int j = 0; j < TestData; ++j) {
+            test_data_in[j][i] = (test_data_in[j][i] - min_in[i]) / (max_in[i] - min_in[i]);
+        }
+    }
+    for (int k = 0; k < TestData; ++k) {
+        for (int i = 0; i < Imp; ++i) {
+            sum = 0;
+            for (int j = 0; j < In; ++j) {
+                sum += v[i][j] * test_data_in[k][j];
+            }
+            y[i] = 1 / (1 + exp(-1 * sum));
+        }
+        sum = 0;
+        for (int j = 0; j < Imp; ++j) {
+            sum += w[0][j] * y[j];
+        }
+        pre[k][0] = 1 / (1 + exp(-1 * sum)) * (max_out[0] - min_out[0]) + min_out[0];
+        printf("No. %d Predicted values: %.2lf Actual value: %.2lf\n", k + 1, pre[k][0], test_data_out[k][0]);
+    }
+    rmse = 0.0;
+    for (int k = 0; k < TestData; ++k) {
+        rmse += (pre[k][0] - test_data_out[k][0]) * (pre[k][0] - test_data_out[k][0]);
+    }
+    rmse = sqrt(rmse / TestData);
+    printf("rmse: %.4lf\n", rmse);
+} // test the network using data in test.txt
+
+
+#endif //INC_6__HEAD_H
+
+#pragma clang diagnostic pop

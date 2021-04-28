@@ -38,7 +38,7 @@ double tmp2;
 void read_data(char in[], char out[]) {
     FILE *fp1, *fp2;
     char ch;
-    if ((fp1 = fopen(in, "rb")) == NULL) {
+    if ((fp1 = fopen(in, "r")) == NULL) {
         printf("Failed to read %s\n", in);
         exit(0);
     }
@@ -52,7 +52,7 @@ void read_data(char in[], char out[]) {
         }
     }
     fclose(fp1);
-    if ((fp2 = fopen(out, "rb")) == NULL) {
+    if ((fp2 = fopen(out, "r")) == NULL) {
         printf("Failed to read %s\n", out);
         exit(0);
     }
@@ -227,7 +227,7 @@ void feed_back(int var) {
 void test_network(char test_file_name[]) {
     FILE *fp;
     char ch;
-    if ((fp = fopen(test_file_name, "rb")) == NULL) {
+    if ((fp = fopen(test_file_name, "r")) == NULL) {
         printf("Failed to read %s\n", test_file_name);
         exit(0);
     }

@@ -9,6 +9,7 @@
 #include <math.h>
 #include <time.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define TrainData 380   // Num of data in train
 #define TestData 126    // Num of data in test
@@ -19,9 +20,10 @@
 
 //OVERRIDE
 #define TrainingTimes 40000
-#define UAlta 0.2      // Learning rate of Imp2 to Out
-#define VAlta 0.2       // Learning rate between In to Imp
-#define WAlta 0.1       // Learning rate of Imp to Imp2
+#define REQUIRED_MSE 0.5 //
+#define UAlta 0.5      // Learning rate of Imp2 to Out
+#define VAlta 0.3       // Learning rate between In to Imp
+#define WAlta 0.2       // Learning rate of Imp to Imp2
 //OVERRIDE
 
 #endif //INC_6___DEF__H

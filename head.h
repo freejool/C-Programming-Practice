@@ -15,8 +15,8 @@
 //V -- Learning rate between In to Imp
 double data_in[TrainData][In];
 double data_out[TrainData][Out];
-double test_data_in[TrainData][In];
-double test_data_out[TrainData][Out];
+double test_data_in[TestData][In];
+double test_data_out[TestData][Out];
 double pre[TestData][Out];              // Actual output of TestData
 double u[Imp][In];                      // Learning rate between In to Imp
 double v[Imp2][Imp];                    // Learning rate between Imp to Imp2
@@ -136,10 +136,10 @@ void train_network() {
         mse = mse / (TrainData * Out);
 
         if (count % 1000 == 0) {
-            printf("%d  %lf\n", count, mse);
+            printf("%-6d  %lf\n", count, mse);
         }
         count++;
-    } while (mse >= 1);
+    } while (mse >= REQUIRED_MSE);
     printf("Done training!\n");
 }
 
@@ -183,11 +183,14 @@ void feed_back(int var) {
 //        u[i][j] += v_cor[i][j];
 //    }
     double delta_Out[Out];
-    double delta_Imp2[Imp2];
     double delta_Imp[Imp];
+    double delta_Imp2[Imp2];
+    memset(delta_Out, 0, sizeof(double) * Out);
+    memset(delta_Imp, 0, sizeof(double) * Imp);
+    memset(delta_Imp2, 0, sizeof(double) * Imp2);
 
     for (int i = 0; i < Out; ++i) {
-        delta_Out[i] = data_out[var][i] - out_put_data[i];
+        delta_Out[i] += data_out[var][i] - out_put_data[i];
     }
     for (int i = 0; i < Imp2; ++i) {
         for (int j = 0; j < Out; ++j) {
@@ -241,30 +244,50 @@ void test_network(char test_file_name[]) {
         }
     }
     fclose(fp);
-    double sum;
     for (int i = 0; i < In; ++i) {
         for (int j = 0; j < TestData; ++j) {
             test_data_in[j][i] = (test_data_in[j][i] - min_in[i]) / (max_in[i] - min_in[i]);
         }
     }
-    for (int k = 0; k < TestData; ++k) {
+    for (int var = 0; var < TestData; ++var) {
+//        for (int i = 0; i < Imp; ++i) {
+//            sum = 0;
+//            for (int j = 0; j < In; ++j) {
+//                sum += u[i][j] * test_data_in[var][j];
+//            }
+//            y[i] = 1 / (1 + exp(-1 * sum));
+//        }
+//        sum = 0;
+//        for (int j = 0; j < Imp; ++j) {
+//            sum += w[0][j] * y[j];
+//        }
         for (int i = 0; i < Imp; ++i) {
-            sum = 0;
+            y[i] = 0;
             for (int j = 0; j < In; ++j) {
-                sum += u[i][j] * test_data_in[k][j];
+                y[i] += test_data_in[var][j] * u[i][j];
             }
-            y[i] = 1 / (1 + exp(-1 * sum));
+            y[i] = 1 / (1 + exp(-1 * y[i]));
         }
-        sum = 0;
-        for (int j = 0; j < Imp; ++j) {
-            sum += w[0][j] * y[j];
+        for (int i = 0; i < Imp2; ++i) {
+            z[i] = 0;
+            for (int j = 0; j < Imp; ++j) {
+                z[i] += y[j] * v[i][j];
+            }
+            z[i] = 1 / (1 + exp(-1 * z[i]));
         }
-        pre[k][0] = 1 / (1 + exp(-1 * sum)) * (max_out[0] - min_out[0]) + min_out[0];
-        printf("No. %d Predicted values: %.2lf Actual value: %.2lf\n", k + 1, pre[k][0], test_data_out[k][0]);
+        for (int i = 0; i < Out; ++i) {
+            pre[var][i] = 0;
+            for (int j = 0; j < Imp2; ++j) {
+                pre[var][i] += z[j] * w[i][j];
+            }
+            pre[var][i] = 1 / (1 + exp(-1 * pre[var][i])) * (max_out[i] - min_out[i]) + min_out[i];
+            printf("No. %-3d Predicted values: %-4.2lf Actual value: %-4.2lf\n", var + 1, pre[var][i],
+                   test_data_out[var][i]);
+        }
     }
     rmse = 0.0;
-    for (int k = 0; k < TestData; ++k) {
-        rmse += (pre[k][0] - test_data_out[k][0]) * (pre[k][0] - test_data_out[k][0]);
+    for (int var = 0; var < TestData; ++var) {
+        rmse += (pre[var][0] - test_data_out[var][0]) * (pre[var][0] - test_data_out[var][0]);
     }
     rmse = sqrt(rmse / TestData);
     printf("rmse: %.4lf\n", rmse);

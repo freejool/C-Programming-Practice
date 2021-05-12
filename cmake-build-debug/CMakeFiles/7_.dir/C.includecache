@@ -1,0 +1,22 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+C:/Users/Sxing/OneDrive/2020_2/C/7#/main.c
+snake.h
+C:/Users/Sxing/OneDrive/2020_2/C/7#/snake.h
+
+C:/Users/Sxing/OneDrive/2020_2/C/7#/snake.h
+stdio.h
+-
+Windows.h
+-
+conio.h
+-
+time.h
+-
+

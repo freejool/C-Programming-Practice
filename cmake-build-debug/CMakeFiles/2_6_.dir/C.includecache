@@ -1,0 +1,22 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/Users/sxing/OneDrive/2020_2/C/2_6#/Maze.h
+Stack.h
+/Users/sxing/OneDrive/2020_2/C/2_6#/Stack.h
+
+/Users/sxing/OneDrive/2020_2/C/2_6#/Stack.h
+stdio.h
+-
+stdlib.h
+-
+
+/Users/sxing/OneDrive/2020_2/C/2_6#/main.c
+Maze.h
+/Users/sxing/OneDrive/2020_2/C/2_6#/Maze.h
+

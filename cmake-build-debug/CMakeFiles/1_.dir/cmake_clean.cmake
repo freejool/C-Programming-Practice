@@ -1,9 +1,7 @@
 file(REMOVE_RECURSE
-  "1_.exe"
-  "1_.exe.manifest"
+  "1_"
   "1_.pdb"
-  "CMakeFiles/1_.dir/wordsplit.c.obj"
-  "lib1_.dll.a"
+  "CMakeFiles/1_.dir/wordsplit.c.o"
 )
 
 # Per-language clean rules from dependency scanning.

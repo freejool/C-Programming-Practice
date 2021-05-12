@@ -4,9 +4,9 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_C
-  "C:/Users/Sxing/OneDrive/2020_2/C/1#/wordsplit.c" "C:/Users/Sxing/OneDrive/2020_2/C/1#/cmake-build-debug/CMakeFiles/1_.dir/wordsplit.c.obj"
+  "/Users/sxing/OneDrive/2020_2/C/1#/wordsplit.c" "/Users/sxing/OneDrive/2020_2/C/1#/cmake-build-debug/CMakeFiles/1_.dir/wordsplit.c.o"
   )
-set(CMAKE_C_COMPILER_ID "GNU")
+set(CMAKE_C_COMPILER_ID "AppleClang")
 
 # The include file search paths:
 set(CMAKE_C_TARGET_INCLUDE_PATH

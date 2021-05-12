@@ -1,0 +1,20 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/Users/sxing/OneDrive/2020_2/C/1#/wordsplit.c
+wordsplit.h
+/Users/sxing/OneDrive/2020_2/C/1#/wordsplit.h
+
+/Users/sxing/OneDrive/2020_2/C/1#/wordsplit.h
+stdio.h
+-
+stdlib.h
+-
+string.h
+-
+
